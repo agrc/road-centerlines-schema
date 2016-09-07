@@ -43,7 +43,6 @@ class Domain(object):
                                        self.splitPolicy,
                                        self.mergePolicy)
         for code in self.codedValues:
-            print code
             arcpy.AddCodedValueToDomain_management (workspace,
                                                     self.domainName,
                                                     code,
@@ -66,12 +65,12 @@ class Field(object):
         length = None
         if self.fieldLength.isdigit():
             length = int(self.fieldLength)
-        arcpy.AddField_management (in_table = featureClass,
-                                   field_name = self.fieldName,
-                                   field_type = self.fieldType,
-                                   field_length = length,
-                                   field_alias = self.aliasName,
-                                   field_domain = self.domainName)
+        arcpy.AddField_management(in_table=featureClass,
+                                  field_name=self.fieldName,
+                                  field_type=self.fieldType,
+                                  field_length=length,
+                                  field_alias=self.aliasName,
+                                  field_domain=self.domainName)
 
 
 def checkStrParam(spreadSheetString):
@@ -118,10 +117,10 @@ def getDomains(worksheets,
 
 if __name__ == '__main__':
     scope = ['https://spreadsheets.google.com/feeds']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(r'CenterlineSchema-c1b9c8e23e52.json', scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(r'CenterlineSchema-5db1aa340548.json', scope)
     gc = gspread.authorize(credentials)
     # spreadsheet must be shared with the email in credentials
-    spreadSheet = gc.open_by_url(r"https://docs.google.com/spreadsheets/d/16FYf_FMZsqVRS9M7OyHJ2OZDbTRELVPuU4PCTcvaHMo/edit#gid=811360546")
+    spreadSheet = gc.open_by_url(r"https://docs.google.com/spreadsheets/d/1QbhvmE-HEPcYM7qWGbSxh1F8FApq9LN22MkQM3fU8nE/edit#gid=811360546")
     worksheets = spreadSheet.worksheets()
     fieldWorkSheet = spreadSheet.worksheet('FC_RoadCenterlines')
 
@@ -129,8 +128,8 @@ if __name__ == '__main__':
     nameI = fieldWorkSheet.find('FieldName').col - 1
     typeI = fieldWorkSheet.find('Type').col - 1
     lengthI = fieldWorkSheet.find('Length').col - 1
-    aliasI =  fieldWorkSheet.find('AliasName').col - 1
-    domainI = fieldWorkSheet.find('DomainName').col - 1
+    aliasI = fieldWorkSheet.findall('AliasName')[1].col - 1  # AliasName is used multiple times in sheet
+    domainI = fieldWorkSheet.findall('DomainName')[1].col - 1  # DomainName is used multiple times in sheet
     fieldTableRow = fieldWorkSheet.find('FieldName').row
     # Get the fields from the FC_RoadCenterlines sheet
     fields = getFields(fieldWorkSheet,
@@ -140,7 +139,7 @@ if __name__ == '__main__':
                        aliasI,
                        domainI,
                        fieldTableRow)
-    # Set up domain indicies for worksheet list of lists access
+    # Set up indicies for domain worksheets
     domainNameI = 0
     domainTypeI = 1
     fieldTypeI = 2
@@ -149,7 +148,7 @@ if __name__ == '__main__':
     descriptionI = 5
     ownerI = 6
     codedValueHeaderI = 10
-    #Get the domains from all Domain worksheets
+    # Get the domains from all Domain worksheets
     domains = getDomains(worksheets,
                          domainNameI,
                          domainTypeI,
@@ -159,12 +158,20 @@ if __name__ == '__main__':
                          descriptionI,
                          ownerI,
                          codedValueHeaderI)
+
     # Create GDB for domains and output feature class
-    outputGdb = arcpy.CreateFileGDB_management(r'.\data',
+    outputGdb = arcpy.CreateFileGDB_management(r'C:\GisWork\GdocRoadsSchema',
                                                'CenterLineSchema' + uniqueRunNum)
+    print 'Output GDB created'
+    for d in domains:
+        print 'Adding domain: {}'.format(d.domainName)
+        d.addToWorkspace(outputGdb)
+
     # Create road centerline feature class
-    outputRoadFc = arcpy.CreateFeatureclass_management (out_path = outputGdb,
-                                                        out_name = 'RoadCenterlines',
-                                                        geometry_type = 'POLYLINE')
+    outputRoadFc = arcpy.CreateFeatureclass_management(out_path=outputGdb,
+                                                       out_name='RoadCenterlines',
+                                                       geometry_type='POLYLINE')
+    print 'Road feature class created'
     for f in fields:
+        print 'Add field: {}'.format(f.fieldName)
         f.addToFeatureClass(outputRoadFc)
