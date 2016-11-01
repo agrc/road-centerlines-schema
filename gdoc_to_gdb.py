@@ -120,7 +120,7 @@ if __name__ == '__main__':
     credentials = ServiceAccountCredentials.from_json_keyfile_name(r'CenterlineSchema-5db1aa340548.json', scope)
     gc = gspread.authorize(credentials)
     # spreadsheet must be shared with the email in credentials
-    spreadSheet = gc.open_by_url(r"https://docs.google.com/spreadsheets/d/1QbhvmE-HEPcYM7qWGbSxh1F8FApq9LN22MkQM3fU8nE/edit#gid=811360546")
+    spreadSheet = gc.open_by_url(r"https://docs.google.com/spreadsheets/d/1onK6SVBClj-0A-pI7NKtuczPOt2zvR5Y35VYAyehBE0/edit#gid=811360546")
     worksheets = spreadSheet.worksheets()
     fieldWorkSheet = spreadSheet.worksheet('FC_RoadCenterlines')
 
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     typeI = fieldWorkSheet.find('Type').col - 1
     lengthI = fieldWorkSheet.find('Length').col - 1
     aliasI = fieldWorkSheet.findall('AliasName')[1].col - 1  # AliasName is used multiple times in sheet
-    domainI = fieldWorkSheet.findall('DomainName')[1].col - 1  # DomainName is used multiple times in sheet
+    domainI = fieldWorkSheet.find('DomainName').col - 1
     fieldTableRow = fieldWorkSheet.find('FieldName').row
     # Get the fields from the FC_RoadCenterlines sheet
     fields = getFields(fieldWorkSheet,
