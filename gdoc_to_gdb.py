@@ -116,14 +116,19 @@ def getDomains(worksheets,
 
 
 if __name__ == '__main__':
+    print 'Run: {}'.format(uniqueRunNum)
     scope = ['https://spreadsheets.google.com/feeds']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(r'CenterlineSchema-5db1aa340548.json', scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(r'CenterlineSchema-c1b9c8e23e52.json', scope)
     gc = gspread.authorize(credentials)
     # spreadsheet must be shared with the email in credentials
-    spreadSheet = gc.open_by_url(r"https://docs.google.com/spreadsheets/d/1onK6SVBClj-0A-pI7NKtuczPOt2zvR5Y35VYAyehBE0/edit#gid=811360546")
+    spreadSheet = gc.open_by_url(r"https://docs.google.com/spreadsheets/d/1jQ_JuRIEtzxj60F0FAGmdu5JrFpfYBbSt3YzzCjxpfI/edit#gid=811360546")
     worksheets = spreadSheet.worksheets()
     fieldWorkSheet = spreadSheet.worksheet('FC_RoadCenterlines')
 
+    # Get the version
+    titleVal = fieldWorkSheet.acell('A1').value
+    versionString = titleVal.split('V')[1].replace('.', '_')
+    print 'Road schema version {}'.format(versionString)
     # Set up field indicies for worksheet list access
     nameI = fieldWorkSheet.find('FieldName').col - 1
     typeI = fieldWorkSheet.find('Type').col - 1
@@ -161,7 +166,7 @@ if __name__ == '__main__':
 
     # Create GDB for domains and output feature class
     outputGdb = arcpy.CreateFileGDB_management(r'C:\GisWork\GdocRoadsSchema',
-                                               'CenterLineSchema' + uniqueRunNum)
+                                               'CenterLineSchema{}_{}'.format(versionString, uniqueRunNum))
     print 'Output GDB created'
     for d in domains:
         print 'Adding domain: {}'.format(d.domainName)
