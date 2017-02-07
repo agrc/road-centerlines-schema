@@ -27,26 +27,28 @@ class Domain(object):
         self.splitPolicy = splitPolicy
         self.description = description
         self.owner = owner
-        self.codedValues = {}
+        self.codedValues = []
 
     def addCodedValue(self, code, value):
         """Store coded value for the domain."""
-        self.codedValues[code] = value
+        self.codedValues.append((code, value))
 
     def addToWorkspace(self, workspace):
         """Add this domain to the GDB workspace."""
-        arcpy.CreateDomain_management (workspace,
-                                       self.domainName,
-                                       self.description,
-                                       self.fieldType,
-                                       self.domainType,
-                                       self.splitPolicy,
-                                       self.mergePolicy)
-        for code in self.codedValues:
-            arcpy.AddCodedValueToDomain_management (workspace,
-                                                    self.domainName,
-                                                    code,
-                                                    self.codedValues[code])
+        arcpy.CreateDomain_management(workspace,
+                                      self.domainName,
+                                      self.description,
+                                      self.fieldType,
+                                      self.domainType,
+                                      self.splitPolicy,
+                                      self.mergePolicy)
+
+        for cvPair in self.codedValues:
+            code, value = cvPair
+            arcpy.AddCodedValueToDomain_management(workspace,
+                                                   self.domainName,
+                                                   code,
+                                                   value)
 
 
 class Field(object):
